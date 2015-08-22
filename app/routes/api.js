@@ -7,9 +7,9 @@ var router = express.Router();
 router.post("/player", function(req,res) {
 	var name = req.body.player_name.toLowerCase().trim();
 	var nameArr = name.split(" ");
-	
-	// first letter of last name;
-	var l = nameArr[1][0];
+		
+	// first letter of last name (or first name if only one name) -- not working with single names (?)
+	var l = (nameArr.length > 1) ? nameArr[1][0] : nameArr[0][0];
 
 	var host = "http://www.basketball-reference.com";
 	var playerList = host + "/players/" + l + "/";
@@ -37,13 +37,12 @@ router.post("/player", function(req,res) {
 
 			player.bbr_link = url;
 
+			// if table#contract exists, player's still active
 			$('#contract').filter(function() {
-				// if table#contract exists, player's still active
 				player.info.current_contract = $(this).find('tr').last().find('td').eq(1).text()
 			});
 
-			// STATS
-			var scrapeTable = function(tableAttr, cb) {
+			var scrape_stats_table = function(tableAttr, cb) {
 				$(tableAttr).filter(function(){
 					var stats = {};
 					var temp = [];
@@ -62,13 +61,13 @@ router.post("/player", function(req,res) {
 			}
 
 			// all time
-			scrapeTable('#totals', function(err, res) { player.stats.total = res; });
+			scrape_stats_table('#totals', function(err, res) { player.stats.total = res; });
 			// per game
-			scrapeTable('#per_game', function(err, res) { player.stats.per_game = res; });
+			scrape_stats_table('#per_game', function(err, res) { player.stats.per_game = res; });
 			// per 36 minutes
-			scrapeTable('#per_minute', function(err, res) { player.stats.per_36_min = res; });
+			scrape_stats_table('#per_minute', function(err, res) { player.stats.per_36_min = res; });
 			// per 100 possessions
-			scrapeTable('#per_poss', function(err, res) { player.stats.per_100_poss = res; });
+			scrape_stats_table('#per_poss', function(err, res) { player.stats.per_100_poss = res; });
 
 			callback(null, player);
 		});
@@ -106,13 +105,9 @@ router.post("/player", function(req,res) {
 	};
 
 	scrape_bbr_path(function(err, path) {
-
 		var url = host + path;
-
 		scrape_bbr_stats(url, function(err, player_data) {
-
 			scrape_nba_data(function(err, nba_data) {
-
 				if (typeof player_data !== 'undefined' && player_data) {
 					player_data.info.team = nba_data.team;
 					player_data.info.position = nba_data.pos;
