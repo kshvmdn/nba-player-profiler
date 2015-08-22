@@ -41,6 +41,7 @@
 						<th class="two wide">PPG</th>
 						<th class="two wide">APG</th>
 						<th class="two wide">RPG</th>
+						<th class="one wide"><i>Remove</i></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -61,6 +62,7 @@
 						<td>{{ player.stats.per_game.pts_per_g }}</td>
 						<td>{{ player.stats.per_game.ast_per_g }}</td>
 						<td>{{ player.stats.per_game.trb_per_g }}</td>
+						<td ng-click="vm.removePlayer(player.info.name)"><i class="remove link icon"></i></td>
 					</tr>
 				</tbody>
 			</table><!--/ANGULAR_CONTENT-->

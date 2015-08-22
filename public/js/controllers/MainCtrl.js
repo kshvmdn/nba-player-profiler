@@ -11,5 +11,10 @@ angular.module('MainCtrl', [])
 				}).error(function(data){
 					console.log('Error: ' + data);
 				});
-		}
+		};
+		vm.removePlayer = function(playerName) {
+			var name = playerName.toLowerCase();
+			delete vm.players[name];
+			console.log(vm.players);
+		};
 });
