@@ -4,35 +4,69 @@
 		<meta charset="UTF-8">
 		<title>NBA Player Profiler</title>
 
-		<link rel="stylesheet" href="libs/bootstrap/dist/css/bootstrap.min.css">
+		<link rel="stylesheet" href="libs/semantic-ui/dist/semantic.min.css">
 		<link rel="stylesheet" href="css/style.css">
-
 		<script src="libs/angular/angular.min.js"></script>
 
 		<script src="js/controllers/MainCtrl.js"></script>
 		<script src="js/app.js"></script>
 	</head>
 	<body ng-controller="MainController as main">
-		<div class="container">
-			<!-- HEADER -->
-			<nav class="navbar navbar-inverse">
-				<div class="navbar-header">
-					<a class="navbar-brand" href="/">NBA Player Profiler</a>
-				</div>
-			</nav>
-			
-			<!-- FORM -->
-			<form>
-				<div class="form-group">
-					<input type="text" ng-model="main.formData.player_name" class="form-control" placeholder="Player Name">
-				</div>
-				<button type="submit" class="btn btn-default" ng-click="main.addPlayer()">Add</button>
-			</form>
 
-			<!-- ANGULAR DYNAMIC CONTENT -->
-			<div ng-repeat="player in main.players">
-					{{player.info.name}}
-			</div>
-		</div>
+		<!--HEADER-->
+		<div class="ui top attached small borderless menu">
+			<div class="header item">NBA Player Profiler</div>
+			<div class="right text item">kshvmdn</div>
+		</div><!--/HEADER-->
+
+		<!--CONTAINER-->
+		<div class="ui container">
+
+			<!--FORM-->
+			<form class="ui form">
+				<div class="field">
+					<label>Player name</label>
+					<div class="ui action input">
+						<input type="text" placeholder="Player name" ng-model="main.formData.player_name">
+						<button type="submit" class="ui button" ng-click="main.addPlayer()">Add</button>
+					</div>
+				</div>
+			</form><!--/FORM-->
+
+			<!--CONTENT -->
+			<table class="ui celled center aligned unstackable table">
+				<thead>
+					<tr>
+						<th class="four wide">Player</th>
+						<th class="three wide">Years Pro</th>
+						<th class="three wide">Salary (15-16)</th>
+						<th class="two wide">PPG</th>
+						<th class="two wide">APG</th>
+						<th class="two wide">RPG</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="player in main.players">
+						<td>
+							<h4 class="ui image header">
+								<img style="display:inline" src="{{ player.info.img_src }}">
+								<div class="content">
+									{{ player.info.name }}
+									<div class="sub header">
+										{{ player.info.team }}
+									</div>
+								</div>
+							</h4>
+						</td>
+						<td>/years pro/</td>
+						<td>{{ player.info.current_contract }}</td>
+						<td>{{ player.stats.per_game.pts_per_g }}</td>
+						<td>{{ player.stats.per_game.ast_per_g }}</td>
+						<td>{{ player.stats.per_game.trb_per_g }}</td>
+					</tr>
+				</tbody>
+			</table><!--/CONTENT-->
+
+		</div><!--/CONTAINER-->
 	</body>
 </html>

@@ -2,9 +2,9 @@
 	"name": "nba-player-profiler",
   	"version": "0.0.1",
   	"dependencies": {
-        "bootstrap": "latest",
+        "semantic-ui": "latest",
         "font-awesome": "latest",
         "animate.css": "latest",
-        "angular": "latest",
+        "angular": "latest"
     }
 }
