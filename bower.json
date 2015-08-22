@@ -3,8 +3,6 @@
   	"version": "0.0.1",
   	"dependencies": {
         "semantic-ui": "latest",
-        "font-awesome": "latest",
-        "animate.css": "latest",
         "angular": "latest"
     }
 }
