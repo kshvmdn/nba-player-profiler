@@ -5,7 +5,7 @@ var cheerio = require("cheerio");
 var router = express.Router();
 
 router.post("/player", function(req,res) {
-	var name = req.body.player_name.toLowerCase().trim();
+	var name = req.body.player_name.trim();
 	var nameArr = name.split(" ");
 	
 	// first letter of last name;
@@ -14,10 +14,9 @@ router.post("/player", function(req,res) {
 	var host = "http://www.basketball-reference.com";
 	var playerList = host + "/players/" + l + "/";
 
-	var scrape_bbr_path = function(callback) {
+	var getPlayerPath = function(callback) {
 		request(playerList, function(error, response, body) {
-			if (error) { callback(true); return; }
-
+			if (error) throw error;
 			var $ = cheerio.load(body);
 			var playerPath = $('#players tbody tr').filter(function() {
 				return $(this).find('td').first().find('a').text().toLowerCase() === name.toLowerCase();
@@ -25,108 +24,77 @@ router.post("/player", function(req,res) {
 
 			callback(null, playerPath);
 		});
-	};
+	}
 
-	var scrape_bbr_stats = function(playerUrl, callback) {
+	var getPlayerInfo = function(playerUrl, callback) {
 		var url = playerUrl;
 		request(url, function(error, response, body) {
-			if (error) { callback(true); return; }
+			if (error) throw error;
 			var $ = cheerio.load(body);
 
 			var player = {info: {}, stats: {}}
 
-			player.bbr_link = url;
+			player.info.bbr_link = url;
+
+			// INFO
+			$("#info_box").filter(function() {
+				player.info.name = $(this).find('h1').text();
+				player.info.img_src = $(this).find('img').attr('src');
+				// TODO get more info lol
+			});
 
 			$('#contract').filter(function() {
 				// if table#contract exists, player's still active
 				player.info.current_contract = $(this).find('tr').last().find('td').eq(1).text()
 			});
-
+			
 			// STATS
 			var scrapeTable = function(tableAttr, cb) {
 				$(tableAttr).filter(function(){
 					var stats = {};
 					var temp = [];
-
-					// get values (from footer)
 					$(this).find('tfoot td').each(function(i, el) {
-						if (i > 4) temp.push(parseFloat($(this).text()));
+					if (i > 4)
+						temp.push(parseFloat($(this).text()));
 					});
-
-					// get heading names and assign values (from footer) to respective headings
 					$(this).find('thead th').each(function(i, el) {
-						if (i > 4) stats[$(this).attr('data-stat')] = temp[i-5];
+						if (i > 4)
+							stats[$(this).attr('data-stat')] = temp[i-5];
 					});
 					cb(null, stats);
 				});
 			}
 
 			// all time
-			scrapeTable('#totals', function(err, res) { player.stats.total = res; });
+			scrapeTable('#totals', function(err, res) {
+				player.stats.total = res;
+			});
+
 			// per game
-			scrapeTable('#per_game', function(err, res) { player.stats.per_game = res; });
+			scrapeTable('#per_game', function(err, res) {
+				player.stats.per_game = res;
+			});
+
 			// per 36 minutes
-			scrapeTable('#per_minute', function(err, res) { player.stats.per_36_min = res; });
+			scrapeTable('#per_minute', function(err, res) {
+				player.stats.per_36_min = res;
+			});
+			
 			// per 100 possessions
-			scrapeTable('#per_poss', function(err, res) { player.stats.per_100_poss = res; });
+			scrapeTable('#per_poss', function(err, res) {
+				player.stats.per_100_poss = res;
+			});
 
 			callback(null, player);
 		});
-	};
+	}
 
-	var scrape_nba_data = function(cb) {
-		var encoded_name = name.split(" ").join("_");
-		var url = 'http://www.nba.com/playerfile/'+encoded_name+'/';
-		request(url, function(error, response, body) {
-			if (error) { cb(true); }
-
-			var playerInfo = {};
-			playerInfo.nba_link = url;
-
-			var $ = cheerio.load(body);
-
-			// name 
-			playerInfo['name'] = $('.player-name').text();
-
-			// img
-			$('.player-headshot').filter(function() {
-				playerInfo['img_src'] = $(this).find('img').attr('src');
-			});
-
-			// info
-			$('.player-info').filter(function(){
-				var num_position = $(this).find('.num-position').text().trim().split(' | ');
-				playerInfo['num'] = num_position[0];
-				playerInfo['pos'] = num_position[1];
-				playerInfo['team'] = $(this).find('.player-team').text();
-			});
-			
-			cb(null, playerInfo);
-		});
-	};
-
-	scrape_bbr_path(function(err, path) {
-
+	getPlayerPath(function(err, path) {
 		var url = host + path;
-
-		scrape_bbr_stats(url, function(err, player_data) {
-
-			scrape_nba_data(function(err, nba_data) {
-
-				if (typeof player_data !== 'undefined' && player_data) {
-					player_data.info.team = nba_data.team;
-					player_data.info.position = nba_data.pos;
-					player_data.info.number = nba_data.num;
-					player_data.info.name = nba_data.name;
-					player_data.info.img_src = nba_data.img_src;
-					player_data.nba_link = nba_data.nba_link;
-					res.json(player_data);
-				} else {
-					res.status(400).send('Player not found');
-				}
-			});
+		getPlayerInfo(url, function(err, info) {
+			res.json(info);
 		});
 	});
-});
+})
 
 module.exports = router;
